@@ -1,0 +1,50 @@
+version: '3.7'
+
+volumes:
+    logs:
+        driver: local
+
+services:
+    app:
+        container_name: foodCo
+        image: php:latest
+        restart: always
+        working_dir: /var/www
+        command: php -S 0.0.0.0:80 -t public
+        ports:
+            - 5080:80
+        volumes:
+            - .:/var/www
+            - ../logs:/var/www/logs
+        environment:
+            MYSQL_HOST: db
+            MYSQL_USER: foodCo
+            MYSQL_PASSWORD: passwordCo
+            MSYQL_DATABASE: foodCoDb
+        depends_on:
+            - db
+    db:
+        container_name: foodCoDb
+        image: mysql:latest
+        restart: always
+        ports:
+            - 5306:3306
+        volumes:
+            - ../mysql-data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_USER: foodCo
+            MYSQL_PASSWORD: passwordCo
+            MYSQL_DATABASE: foodCoDb
+    composer:
+        container_name: foodCoComposer
+        restart: 'no'
+        image: composer:latest
+        user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+        working_dir: /var/www
+        command: "composer update"
+        volumes:
+            - ./:/var/www
+        depends_on:
+            - app
+
